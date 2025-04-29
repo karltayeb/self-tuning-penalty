@@ -1,0 +1,21 @@
+project:
+  type: website
+execute:
+  eval: false
+  freeze: true
+website:
+  title: "Self tuning penalty"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+
+

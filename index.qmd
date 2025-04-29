@@ -1,0 +1,7 @@
+---
+title: "Self tuning penalty"
+---
+
+This is a research website. We are exploring the use of variational emprical Bayes to produce self tuning penalties, e.g. for multiple regression.
+
+[Initial test](notebooks/vbmr_initial_test.html)
