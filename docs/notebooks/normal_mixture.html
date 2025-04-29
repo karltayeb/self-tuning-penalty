@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.39">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>normal_mixture – Self tuning penalty</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e26003cea8cd680ca0c55a263523d882.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-6bd9cfa162949bde0a231f530c97869d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Self tuning penalty</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#gaussian-error-gaussian-prior" id="toc-gaussian-error-gaussian-prior" class="nav-link active" data-scroll-target="#gaussian-error-gaussian-prior">Gaussian error, gaussian prior</a>
+  <ul class="collapse">
+  <li><a href="#fixed-g" id="toc-fixed-g" class="nav-link" data-scroll-target="#fixed-g">Fixed <span class="math inline">\(g\)</span></a></li>
+  <li><a href="#estimate-prior-variance" id="toc-estimate-prior-variance" class="nav-link" data-scroll-target="#estimate-prior-variance">Estimate prior variance</a></li>
+  </ul></li>
+  <li><a href="#different-error-models" id="toc-different-error-models" class="nav-link" data-scroll-target="#different-error-models">Different error models</a></li>
+  <li><a href="#scale-mixture-of-normals" id="toc-scale-mixture-of-normals" class="nav-link" data-scroll-target="#scale-mixture-of-normals">Scale mixture of normals</a>
+  <ul class="collapse">
+  <li><a href="#fixed-g-1" id="toc-fixed-g-1" class="nav-link" data-scroll-target="#fixed-g-1">Fixed <span class="math inline">\(g\)</span></a></li>
+  <li><a href="#estimate-g-scale-mixture-of-normals" id="toc-estimate-g-scale-mixture-of-normals" class="nav-link" data-scroll-target="#estimate-g-scale-mixture-of-normals">Estimate <span class="math inline">\(g\)</span>: scale mixture of normals</a></li>
+  </ul></li>
+  <li><a href="#logistic-regression" id="toc-logistic-regression" class="nav-link" data-scroll-target="#logistic-regression">Logistic regression</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+
+
+
+
+<p>We implement the scale mixture of normals prior. In particular given a function for computing the marginal likelihood <span class="math inline">\(\ell(z, s)\)</span> we can use autograd to (1) get functions for the posterior mean and variance, and (2) get gradients for the posterior mean and variance with respect to <span class="math inline">\(z, s\)</span>.</p>
+<div id="cfe88a14-a342-480c-b033-ceaad8ed9a17" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax.numpy <span class="im">as</span> jnp</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax.scipy.stats <span class="im">import</span> norm</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax.scipy.special <span class="im">import</span> logsumexp</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jaxopt</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>jax.config.update(<span class="st">"jax_enable_x64"</span>, <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="35b3ffe2-e555-48e1-ba60-4071f65cb116" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># here we check that the gradient based computations work correctly for a simple test case</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># y \sim N(b, 1), b \sim (0, 1)</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>normalize <span class="op">=</span> <span class="kw">lambda</span> x: np.exp(x <span class="op">-</span> logsumexp(x))</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_marginal_normal(z, s, sigma<span class="op">=</span><span class="fl">1.0</span>):</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> norm.logpdf(z, loc<span class="op">=</span><span class="fl">0.</span>, scale<span class="op">=</span>jnp.sqrt(s<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> sigma<span class="op">**</span><span class="dv">2</span>))</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># compute posterior mean and variance by tweedie's formula</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>posterior_mean <span class="op">=</span> <span class="kw">lambda</span> z, s: z <span class="op">+</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> jax.grad(log_marginal_normal)(z, s, <span class="fl">1.</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>posterior_variance <span class="op">=</span> <span class="kw">lambda</span> z, s: s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> jax.grad(jax.grad(log_marginal_normal))(z, s, <span class="fl">1.</span>))</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> <span class="fl">3.</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> <span class="fl">1.</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 3/2, 1 / (1 + 1)</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>posterior_mean(z, s), posterior_variance(z, s)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> <span class="fl">1.</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> np.sqrt(<span class="fl">0.5</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># 2/3, 1 / (1 + 2)</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>posterior_mean(z, s), posterior_variance(z, s)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<pre><code>(Array(0.66666667, dtype=float64), Array(0.33333333, dtype=float64))</code></pre>
+</div>
+</div>
+<div id="4364204c-60ef-4fd8-9f30-b49c5ad99817" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> functools <span class="im">import</span> partial</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># g is a scale mixture of normals (possibly with a point mass at 0)</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_marginal(z, s, pi, sigma_grid):</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> logsumexp(jnp.log(pi) <span class="op">+</span> norm.logpdf(z, loc<span class="op">=</span><span class="fl">0.</span>, scale<span class="op">=</span>jnp.sqrt(s<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> sigma_grid<span class="op">**</span><span class="dv">2</span>)))</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>pi <span class="op">=</span> np.ones(<span class="dv">5</span>)<span class="op">/</span><span class="dv">5</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>sigma_grid <span class="op">=</span> np.arange(<span class="dv">5</span>) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>log_marginal_g <span class="op">=</span> partial(log_marginal, pi<span class="op">=</span>pi, sigma_grid<span class="op">=</span>sigma_grid)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co"># this is for the gaussian error model</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>posterior_mean <span class="op">=</span> <span class="kw">lambda</span> z, s: z <span class="op">+</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> jax.grad(log_marginal_g)(z, s)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>posterior_variance <span class="op">=</span> <span class="kw">lambda</span> z, s: s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> (<span class="fl">1.</span> <span class="op">+</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> jax.grad(jax.grad(log_marginal_g))(z, s))</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>kappa <span class="op">=</span> <span class="kw">lambda</span> z, s: log_marginal_g(z, s) <span class="op">-</span> norm.logpdf(z, <span class="dv">0</span>, s)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>Eeta <span class="op">=</span> <span class="kw">lambda</span> z, s: jax.grad(kappa)(z, s)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>Eeta2 <span class="op">=</span> <span class="kw">lambda</span> z, s: Eeta(z, s)<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> jax.grad(Eeta)(z,s)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>KL <span class="op">=</span> <span class="kw">lambda</span> z, s: z <span class="op">*</span> Eeta(z, s) <span class="op">-</span> Eeta2(z, s) <span class="op">*</span> s<span class="op">**</span><span class="dv">2</span><span class="op">/</span><span class="dv">2</span> <span class="op">-</span> kappa(z, s)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="co">#KL = lambda: z, s: z * posterior_mean(z, s)/s**2 - 0.5 * posterior_variance(z, s)/s**2</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="co"># this would work substituting other exponential families</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>posterior_mean2 <span class="op">=</span> <span class="kw">lambda</span> z, s: s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> (jax.grad(log_marginal_g)(z, s) <span class="op">-</span> jax.grad(norm.logpdf)(z, <span class="dv">0</span>, s))</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>posterior_variance2 <span class="op">=</span> <span class="kw">lambda</span> z, s: s<span class="op">**</span><span class="dv">4</span> <span class="op">*</span> (jax.grad(jax.grad(log_marginal_g))(z, s) <span class="op">-</span> jax.grad(jax.grad(norm.logpdf))(z, <span class="dv">0</span>, s))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="1a108f7a-1afa-4d4b-9e82-e46dbddc2df3" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test relationship between tweedies formula and general exponential family version</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> <span class="fl">4.</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>posterior_mean(<span class="fl">1.</span>, s) <span class="op">-</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> Eeta(<span class="fl">1.</span>, s)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>Array(0., dtype=float64, weak_type=True)</code></pre>
+</div>
+</div>
+<div id="f40d0cdf-7035-41a2-8085-3d004a440547" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test relationship between tweedies formula and general exponential family version</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>posterior_variance2 <span class="op">=</span> <span class="kw">lambda</span> z, s: s<span class="op">**</span><span class="dv">4</span> <span class="op">*</span> Eeta2(z, s) <span class="op">-</span> (s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> Eeta(z, s))<span class="op">**</span><span class="dv">2</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>z, s <span class="op">=</span> <span class="fl">1.</span>, <span class="fl">4.</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>posterior_variance(z, s) <span class="op">-</span> posterior_variance2(z, s)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>Array(0., dtype=float64, weak_type=True)</code></pre>
+</div>
+</div>
+<div id="93dfb24f-7eae-4634-939f-cbccbf5db681" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># this is for the gaussian error model</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> make_functions(log_marginal_g):</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># tweedie type formula for posterior mean and variance</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    posterior_mean <span class="op">=</span> <span class="kw">lambda</span> z, s: z <span class="op">+</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> jax.grad(log_marginal_g)(z, s)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    posterior_variance <span class="op">=</span> <span class="kw">lambda</span> z, s: s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> (<span class="fl">1.</span> <span class="op">+</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> jax.grad(jax.grad(log_marginal_g))(z, s))</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># natural parameter</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    kappa <span class="op">=</span> <span class="kw">lambda</span> z, s: log_marginal_g(z, s) <span class="op">-</span> norm.logpdf(z, <span class="dv">0</span>, s)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    Eeta <span class="op">=</span> <span class="kw">lambda</span> z, s: jax.grad(kappa)(z, s)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    Eeta2 <span class="op">=</span> <span class="kw">lambda</span> z, s: Eeta(z, s)<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> jax.grad(Eeta)(z,s)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    KL <span class="op">=</span> <span class="kw">lambda</span> z, s: z <span class="op">*</span> Eeta(z, s) <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> Eeta2(z, s) <span class="op">*</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">-</span> kappa(z, s)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> Eqlogp(z, s, X, y, tau):</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>        mu <span class="op">=</span> jax.vmap(posterior_mean)(z, s)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>        V <span class="op">=</span> jax.vmap(posterior_variance)(z, s)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>        yhat <span class="op">=</span> X <span class="op">@</span> mu</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> jnp.diag(X.T <span class="op">@</span> X)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> tau <span class="op">*</span> (jnp.<span class="bu">sum</span>((y <span class="op">-</span> yhat)<span class="op">**</span><span class="dv">2</span>) <span class="op">+</span> jnp.<span class="bu">sum</span>(d <span class="op">*</span> V))</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> elbo(z, s, X, y, tau):</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> Eqlogp(z, s, X, y, tau) <span class="op">-</span> jnp.<span class="bu">sum</span>(jax.vmap(KL)(z, s))</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> posterior(nu):</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>        z <span class="op">=</span> nu[<span class="st">'z'</span>]</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> jnp.log(<span class="dv">1</span> <span class="op">+</span> jnp.exp(nu[<span class="st">'log1exps'</span>]))</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>        mu <span class="op">=</span> jax.vmap(posterior_mean)(z, s)</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>        var <span class="op">=</span> jax.vmap(posterior_variance)(z, s)</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> mu, var</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> objective(nu, X, y, tau):</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>        z <span class="op">=</span> nu[<span class="st">'z'</span>]</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> jnp.log(<span class="dv">1</span> <span class="op">+</span> jnp.exp(nu[<span class="st">'log1exps'</span>]))</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>elbo(z, s, X, y, tau)</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> fit_lbfgs(y, X, tau, maxiter<span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>        p <span class="op">=</span> X.shape[<span class="dv">1</span>]</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>        solver <span class="op">=</span> jaxopt.ScipyMinimize(fun<span class="op">=</span>objective, maxiter<span class="op">=</span>maxiter)</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>        nu <span class="op">=</span> <span class="bu">dict</span>(z<span class="op">=</span>np.zeros(p), log1exps<span class="op">=</span>np.ones(p)) <span class="co"># initialize variational parameters</span></span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>        res <span class="op">=</span> solver.run(nu, X<span class="op">=</span>X, y<span class="op">=</span>y, tau<span class="op">=</span>tau) <span class="co"># optimize  </span></span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>        mu, var <span class="op">=</span> posterior(res.params)</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">dict</span>(res<span class="op">=</span>res, mu<span class="op">=</span>mu, var<span class="op">=</span>var)</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fit_lbfgs, objective, posterior, KL</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="gaussian-error-gaussian-prior" class="level2">
+<h2 class="anchored" data-anchor-id="gaussian-error-gaussian-prior">Gaussian error, gaussian prior</h2>
+<p>In this special case, we can implement the CAVI updates very easily in closed form. We see good agreement between the CAVI results and gradient descent on the compound objective.</p>
+<section id="fixed-g" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-g">Fixed <span class="math inline">\(g\)</span></h3>
+<div id="03d4abe5-0ebe-4e59-95f5-990d5f504724" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mean field updates</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># simulate</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> simulate_gaussian(n, p, tau<span class="op">=</span><span class="dv">1</span>, tau0<span class="op">=</span><span class="fl">1.</span>, seed<span class="op">=</span><span class="dv">1</span>):</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    np.random.seed(seed)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> np.random.normal(size<span class="op">=</span>(n, p))</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    b <span class="op">=</span> np.random.normal(size<span class="op">=</span>p) <span class="op">/</span> np.sqrt(tau0)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> X <span class="op">@</span> b <span class="op">+</span> np.random.normal(size<span class="op">=</span>n)<span class="op">/</span>np.sqrt(tau)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">dict</span>(y<span class="op">=</span>y, X<span class="op">=</span>X, b<span class="op">=</span>b, tau<span class="op">=</span>tau, tau0<span class="op">=</span>tau0, seed<span class="op">=</span>seed)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> kl_univariate_gaussian(muq, varq, varg):</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fl">0.5</span> <span class="op">*</span> np.<span class="bu">sum</span>((varq <span class="op">+</span> muq<span class="op">**</span><span class="dv">2</span>)<span class="op">/</span>varg <span class="op">+</span> np.log(varg<span class="op">/</span>varq)  <span class="op">-</span> <span class="dv">1</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> elbo_cavi(mu, var, y, X, tau, tau0):</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    ybar <span class="op">=</span> X <span class="op">@</span> mu</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> np.diag(X.T <span class="op">@</span> X)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">#kl = 0.5 * np.sum((var + mu)**2 * tau0 + np.log(tau0 * var)  - 1)</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    kl <span class="op">=</span> kl_univariate_gaussian(mu, var, <span class="dv">1</span><span class="op">/</span>tau0)</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    Eloglik <span class="op">=</span>  <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> tau <span class="op">*</span> np.<span class="bu">sum</span>((y<span class="op">-</span>ybar)<span class="op">**</span><span class="dv">2</span>) <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> tau <span class="op">*</span> np.<span class="bu">sum</span>(d <span class="op">*</span> var)</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Eloglik <span class="op">-</span> kl</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gaussian_mr_cavi(y, X, tau, tau0, maxiter<span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    n, p <span class="op">=</span> X.shape</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    mu <span class="op">=</span> np.zeros(X.shape[<span class="dv">1</span>])</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    var <span class="op">=</span> np.ones(X.shape[<span class="dv">1</span>])</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> np.diag(X.T <span class="op">@</span> X)</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> y <span class="op">-</span> X <span class="op">@</span> mu</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    elbos <span class="op">=</span> [elbo_cavi(mu, var, y, X, tau, tau0)]</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(maxiter):</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(p):</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>            r <span class="op">=</span> r <span class="op">+</span> X[:, j] <span class="op">*</span> mu[j]</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>            shrink <span class="op">=</span> tau <span class="op">*</span> d[j] <span class="op">/</span>(tau <span class="op">*</span> d[j] <span class="op">+</span> tau0) </span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>            bhat <span class="op">=</span> np.<span class="bu">sum</span>(r <span class="op">*</span> X[:, j]) <span class="op">/</span> d[j]</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>            mu[j] <span class="op">=</span> shrink <span class="op">*</span> bhat</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>            var[j] <span class="op">=</span> <span class="dv">1</span><span class="op">/</span>(tau <span class="op">*</span> d[j] <span class="op">+</span> tau0)</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>            r <span class="op">=</span> r <span class="op">-</span> X[:,j] <span class="op">*</span> mu[j]</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>        elbos.append(elbo_cavi(mu, var, y, X, tau, tau0))</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">dict</span>(mu<span class="op">=</span>mu, var<span class="op">=</span>var, elbo<span class="op">=</span>np.array(elbos), tau<span class="op">=</span>tau, tau0<span class="op">=</span>tau0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="3b5ba817-5d74-46f5-822b-2a5a2ac8fe58" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the larger the prior precision, the more aggressive shrinkage.</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>sim <span class="op">=</span> simulate_gaussian(<span class="dv">1000</span>, <span class="dv">10</span>, tau<span class="op">=</span><span class="fl">1.</span>, tau0<span class="op">=</span><span class="fl">1.</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>get_range <span class="op">=</span> <span class="kw">lambda</span> x: [x.<span class="bu">min</span>(), x.<span class="bu">max</span>()]</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>y, X, b <span class="op">=</span> sim[<span class="st">'y'</span>], sim[<span class="st">'X'</span>], sim[<span class="st">'b'</span>]</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>cavi_fit1 <span class="op">=</span> gaussian_mr_cavi(y, X, <span class="fl">1.</span>, <span class="fl">1000.</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>cavi_fit2 <span class="op">=</span> gaussian_mr_cavi(y, X, <span class="fl">1.</span>, <span class="fl">100.</span>)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>cavi_fit3 <span class="op">=</span> gaussian_mr_cavi(y, X, <span class="fl">1.</span>, <span class="fl">10.</span>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>plt.scatter(b, cavi_fit1[<span class="st">'mu'</span>])</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>plt.scatter(b, cavi_fit2[<span class="st">'mu'</span>])</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>plt.scatter(b, cavi_fit3[<span class="st">'mu'</span>])</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>plt.plot(get_range(b), get_range(b), c<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="ad921128-0825-4b7a-95a4-5d49e4608548" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_marginal_normal(z, s, tau0):</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> norm.logpdf(z, loc<span class="op">=</span><span class="fl">0.</span>, scale<span class="op">=</span>jnp.sqrt(s<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> <span class="dv">1</span><span class="op">/</span>tau0))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>maxiter <span class="op">=</span> <span class="dv">1000</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>fit_lbfgs, objective, posterior, KL <span class="op">=</span> make_functions(partial(log_marginal_normal, tau0<span class="op">=</span><span class="fl">1000.</span>))</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>compound_fit1 <span class="op">=</span> fit_lbfgs(y, X, <span class="fl">1.</span>, maxiter)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>fit_lbfgs, objective, posterior, KL <span class="op">=</span> make_functions(partial(log_marginal_normal, tau0<span class="op">=</span><span class="fl">100.</span>))</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>compound_fit2 <span class="op">=</span> fit_lbfgs(y, X, <span class="fl">1.</span>, maxiter)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>fit_lbfgs, objective, posterior, KL <span class="op">=</span> make_functions(partial(log_marginal_normal, tau0<span class="op">=</span><span class="fl">10.</span>))</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>compound_fit3 <span class="op">=</span> fit_lbfgs(y, X, <span class="fl">1.</span>, maxiter)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>plt.scatter(b, compound_fit1[<span class="st">'mu'</span>])</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>plt.scatter(b, compound_fit2[<span class="st">'mu'</span>])</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>plt.scatter(b, compound_fit3[<span class="st">'mu'</span>])</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>plt.plot(get_range(b), get_range(b), c<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>plt.ylim(get_range(b))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-10-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="6f276103-51df-4690-a6a7-dadb52372ab1" class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">3</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>plt.sca(ax[<span class="dv">0</span>,<span class="dv">0</span>])</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>plt.scatter(cavi_fit1[<span class="st">'mu'</span>], compound_fit1[<span class="st">'mu'</span>])</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>plt.plot(get_range(cavi_fit1[<span class="st">'mu'</span>]), get_range(cavi_fit1[<span class="st">'mu'</span>]), color<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'mean, tau0 = 1000'</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'CAVI'</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'compound'</span>)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>plt.sca(ax[<span class="dv">0</span>,<span class="dv">1</span>])</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>plt.scatter(cavi_fit2[<span class="st">'mu'</span>], compound_fit2[<span class="st">'mu'</span>])</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>plt.plot(get_range(cavi_fit2[<span class="st">'mu'</span>]), get_range(cavi_fit2[<span class="st">'mu'</span>]), color<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'mean, tau0 = 100'</span>)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'CAVI'</span>)</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'compound'</span>)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>plt.sca(ax[<span class="dv">0</span>,<span class="dv">2</span>])</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>plt.scatter(cavi_fit3[<span class="st">'mu'</span>], compound_fit3[<span class="st">'mu'</span>])</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>plt.plot(get_range(cavi_fit3[<span class="st">'mu'</span>]), get_range(cavi_fit3[<span class="st">'mu'</span>]), color<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'mean, tau0 = 10'</span>)</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'CAVI'</span>)</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'compound'</span>)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>plt.sca(ax[<span class="dv">1</span>,<span class="dv">0</span>])</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>plt.scatter(cavi_fit1[<span class="st">'var'</span>], compound_fit1[<span class="st">'var'</span>])</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>plt.plot(get_range(cavi_fit1[<span class="st">'var'</span>]), get_range(cavi_fit1[<span class="st">'var'</span>]), color<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'var, tau0 = 1000'</span>)</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'CAVI'</span>)</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'compound'</span>)</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>plt.sca(ax[<span class="dv">1</span>,<span class="dv">1</span>])</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>plt.scatter(cavi_fit2[<span class="st">'var'</span>], compound_fit2[<span class="st">'var'</span>])</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>plt.plot(get_range(cavi_fit2[<span class="st">'var'</span>]), get_range(cavi_fit2[<span class="st">'var'</span>]), color<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'mean, tau0 = 100'</span>)</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'CAVI'</span>)</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'compound'</span>)</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>plt.sca(ax[<span class="dv">1</span>,<span class="dv">2</span>])</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>plt.scatter(cavi_fit3[<span class="st">'var'</span>], compound_fit3[<span class="st">'var'</span>])</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>plt.plot(get_range(cavi_fit3[<span class="st">'var'</span>]), get_range(cavi_fit3[<span class="st">'var'</span>]), color<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'mean, tau0 = 10'</span>)</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'CAVI'</span>)</span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'compound'</span>)</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-11-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="0cf466f4-ae96-4bde-8c4e-be7007a3367c" class="cell" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"CAVI solution ELBO = </span><span class="sc">{</span>cavi_fit1[<span class="st">'elbo'</span>][<span class="op">-</span><span class="dv">1</span>]<span class="sc">:.2f}</span><span class="ss">, Combound solution ELBO = </span><span class="sc">{</span><span class="op">-</span>compound_fit1[<span class="st">'res'</span>]<span class="sc">.</span>state<span class="sc">.</span>fun_val<span class="sc">:.2f}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CAVI solution ELBO = -982.67, Combound solution ELBO = -982.67</code></pre>
+</div>
+</div>
+</section>
+<section id="estimate-prior-variance" class="level3">
+<h3 class="anchored" data-anchor-id="estimate-prior-variance">Estimate prior variance</h3>
+<p>Now we will try to estimate the prior variance. There is only one parameter controlling the prior family, namely, the prior variance. A simple strategy is to look across a fixed grid of values. Then we will try to optimize the ELBO w.r.t the prior variance through gradient based optimization.</p>
+<div id="344e859d-89b8-4be2-ab19-2b7d3b248c66" class="cell" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># this is for the gaussian error model</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> make_functions2(log_marginal_g, transforms):</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># tweedie type formula for posterior mean and variance</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    posterior_mean <span class="op">=</span> <span class="kw">lambda</span> z, s, params: z <span class="op">+</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> jax.grad(log_marginal_g)(z, s, <span class="op">**</span>params)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    posterior_variance <span class="op">=</span> <span class="kw">lambda</span> z, s, params: s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> (<span class="fl">1.</span> <span class="op">+</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> jax.grad(jax.grad(log_marginal_g))(z, s, <span class="op">**</span>params))</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># natural parameter</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    kappa <span class="op">=</span> <span class="kw">lambda</span> z, s, params: log_marginal_g(z, s, <span class="op">**</span>params) <span class="op">-</span> norm.logpdf(z, <span class="dv">0</span>, s)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    Eeta <span class="op">=</span> <span class="kw">lambda</span> z, s, params: jax.grad(kappa)(z, s, params)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    Eeta2 <span class="op">=</span> <span class="kw">lambda</span> z, s, params: Eeta(z, s, params)<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> jax.grad(Eeta)(z,s, params)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    KL <span class="op">=</span> <span class="kw">lambda</span> z, s, params: z <span class="op">*</span> Eeta(z, s, params) <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> Eeta2(z, s, params) <span class="op">*</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">-</span> kappa(z, s, params)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> Eqlogp(z, s, params, X, y, tau):</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>        mu <span class="op">=</span> jax.vmap(posterior_mean, (<span class="dv">0</span>, <span class="dv">0</span>, <span class="va">None</span>))(z, s, params)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>        V <span class="op">=</span> jax.vmap(posterior_variance, (<span class="dv">0</span>, <span class="dv">0</span>, <span class="va">None</span>))(z, s, params)</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>        yhat <span class="op">=</span> X <span class="op">@</span> mu</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> jnp.diag(X.T <span class="op">@</span> X)</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> tau <span class="op">*</span> (jnp.<span class="bu">sum</span>((y <span class="op">-</span> yhat)<span class="op">**</span><span class="dv">2</span>) <span class="op">+</span> jnp.<span class="bu">sum</span>(d <span class="op">*</span> V))</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> elbo(z, s, params, X, y, tau):</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> Eqlogp(z, s, params, X, y, tau) <span class="op">-</span> jnp.<span class="bu">sum</span>(jax.vmap(KL, (<span class="dv">0</span>, <span class="dv">0</span>, <span class="va">None</span>))(z, s, params))</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> posterior(nu):</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>        z <span class="op">=</span> nu[<span class="st">'z'</span>]</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> jnp.log(<span class="dv">1</span> <span class="op">+</span> jnp.exp(nu[<span class="st">'s'</span>]))</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>        params <span class="op">=</span> {k: transforms[k](v) <span class="cf">for</span> k, v <span class="kw">in</span> nu[<span class="st">'params'</span>].items()}</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>        mu <span class="op">=</span> jax.vmap(posterior_mean, (<span class="dv">0</span>, <span class="dv">0</span>, <span class="va">None</span>))(z, s, params)</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>        var <span class="op">=</span> jax.vmap(posterior_variance, (<span class="dv">0</span>, <span class="dv">0</span>, <span class="va">None</span>))(z, s, params)</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> mu, var</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># we can take gradients with respect to nu, which includes variational parameters and the parameters of the prior</span></span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> objective(nu, X, y, tau):</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>        z <span class="op">=</span> nu[<span class="st">'z'</span>]</span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> jnp.log(<span class="dv">1</span> <span class="op">+</span> jnp.exp(nu[<span class="st">'s'</span>]))</span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>        params <span class="op">=</span> {k: transforms[k](v) <span class="cf">for</span> k, v <span class="kw">in</span> nu[<span class="st">'params'</span>].items()}</span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>elbo(z, s, params, X, y, tau)</span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> fit_lbfgs(y, X, tau, nu_init, maxiter<span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>        p <span class="op">=</span> X.shape[<span class="dv">1</span>]</span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a>        solver <span class="op">=</span> jaxopt.ScipyMinimize(fun<span class="op">=</span>objective, maxiter<span class="op">=</span>maxiter)</span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>        nu <span class="op">=</span> <span class="bu">dict</span>(z<span class="op">=</span>np.zeros(p), log1exps<span class="op">=</span>np.ones(p)) <span class="co"># initialize variational parameters</span></span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a>        res <span class="op">=</span> solver.run(nu_init, X<span class="op">=</span>X, y<span class="op">=</span>y, tau<span class="op">=</span>tau) <span class="co"># optimize  </span></span>
+<span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a>        mu, var <span class="op">=</span> posterior(res.params)</span>
+<span id="cb16-44"><a href="#cb16-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">dict</span>(res<span class="op">=</span>res, mu<span class="op">=</span>mu, var<span class="op">=</span>var)</span>
+<span id="cb16-45"><a href="#cb16-45" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb16-46"><a href="#cb16-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fit_lbfgs, objective, posterior, KL</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="b1f55cbf-eed2-4945-9cb5-081468b8fd5c" class="cell" data-execution_count="75">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># more variables here so that there are enough examples to learn the prior variance from.</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>n, p <span class="op">=</span> <span class="dv">1000</span>, <span class="dv">100</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>sim <span class="op">=</span> simulate_gaussian(n, p, tau<span class="op">=</span><span class="fl">1.</span>, tau0<span class="op">=</span><span class="fl">10.</span>, seed<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>get_range <span class="op">=</span> <span class="kw">lambda</span> x: [x.<span class="bu">min</span>(), x.<span class="bu">max</span>()]</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>y, X, b <span class="op">=</span> sim[<span class="st">'y'</span>], sim[<span class="st">'X'</span>], sim[<span class="st">'b'</span>]</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>transforms <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    tau0 <span class="op">=</span> <span class="kw">lambda</span> x: jnp.log(<span class="dv">1</span> <span class="op">+</span> jnp.exp(x))</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>nu_init <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> np.zeros(p),</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> np.ones(p),</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    params <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>        tau0 <span class="op">=</span> <span class="fl">10.</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_marginal_normal(z, s, tau0<span class="op">=</span><span class="fl">1.0</span>):</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> norm.logpdf(z, loc<span class="op">=</span><span class="fl">0.</span>, scale<span class="op">=</span>jnp.sqrt(s<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> <span class="dv">1</span><span class="op">/</span>tau0))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="394e59f6-3126-4d7a-a1cd-d7a30cf2f1d2" class="cell" data-execution_count="76">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>tau0s <span class="op">=</span> <span class="dv">10</span><span class="op">**</span>np.linspace(<span class="dv">0</span>, <span class="fl">1.5</span>, <span class="dv">50</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>cavi_fits <span class="op">=</span> [gaussian_mr_cavi(y, X, <span class="fl">1.</span>, tau0) <span class="cf">for</span> tau0 <span class="kw">in</span> tau0s]</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>elbos <span class="op">=</span> np.array([fit[<span class="st">'elbo'</span>][<span class="op">-</span><span class="dv">1</span>] <span class="cf">for</span> fit <span class="kw">in</span> cavi_fits])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="f4fd6da5-5d9d-447e-8074-fbb9fea3a658" class="cell" data-execution_count="77">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>plt.plot(tau0s, elbos)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-16-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="18a3cbd3-72a0-4a51-86c2-f5848db9fcf8" class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fit_fixed_tau0(tau0):</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    maxiter <span class="op">=</span> <span class="dv">10000</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    fit_lbfgs, objective, posterior, KL <span class="op">=</span> make_functions(partial(log_marginal_normal, tau0<span class="op">=</span>tau0))</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fit_lbfgs(y, X, <span class="fl">1.</span>, maxiter)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>compound_fits <span class="op">=</span> [fit_fixed_tau0(tau0) <span class="cf">for</span> tau0 <span class="kw">in</span> tau0s]</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>compound_elbos <span class="op">=</span> np.array([fit[<span class="st">'res'</span>].state.fun_val <span class="cf">for</span> fit <span class="kw">in</span> compound_fits])</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>plt.plot(tau0s, compound_elbos)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="dc9a9962-20d4-42f9-a98d-2bdefdb95217" class="cell" data-execution_count="89">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>sim <span class="op">=</span> simulate_gaussian(<span class="dv">1000</span>, <span class="dv">100</span>, tau<span class="op">=</span><span class="fl">1.</span>, tau0<span class="op">=</span><span class="fl">1.</span>, seed<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>get_range <span class="op">=</span> <span class="kw">lambda</span> x: [x.<span class="bu">min</span>(), x.<span class="bu">max</span>()]</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>tau0 <span class="op">=</span> <span class="fl">10.</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>y, X, b <span class="op">=</span> sim[<span class="st">'y'</span>], sim[<span class="st">'X'</span>], sim[<span class="st">'b'</span>]</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>cavi_fit <span class="op">=</span> gaussian_mr_cavi(y, X, <span class="fl">1.</span>, tau0)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>maxiter <span class="op">=</span> <span class="dv">10000</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>fit_lbfgs, objective, posterior, KL <span class="op">=</span> make_functions(partial(log_marginal_normal, tau0<span class="op">=</span>tau0))</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>compound_fit <span class="op">=</span> fit_lbfgs(y, X, <span class="fl">1.</span>, maxiter)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_mu(cavi_fit, compound_fit):</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>)</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    plt.sca(ax[<span class="dv">0</span>])</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>    plt.scatter(cavi_fit[<span class="st">'mu'</span>], compound_fit[<span class="st">'mu'</span>])</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>    plt.plot(get_range(cavi_fit[<span class="st">'mu'</span>]), get_range(cavi_fit[<span class="st">'mu'</span>]), color<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="st">'Posterior Mean'</span>)</span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>    plt.ylabel(<span class="st">'Compound'</span>)</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>    plt.xlabel(<span class="st">'CAVI'</span>)</span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>    plt.sca(ax[<span class="dv">1</span>])</span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>    plt.scatter(cavi_fit[<span class="st">'var'</span>], compound_fit[<span class="st">'var'</span>])</span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>    plt.plot(get_range(cavi_fit[<span class="st">'var'</span>]), get_range(cavi_fit[<span class="st">'var'</span>]), color<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="st">'Posterior Variance'</span>)</span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>    plt.xlabel(<span class="st">'CAVI'</span>)</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()</span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>plot_mu(cavi_fit, compound_fit)</span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"CAVI solution ELBO = </span><span class="sc">{</span>cavi_fit[<span class="st">'elbo'</span>][<span class="op">-</span><span class="dv">1</span>]<span class="sc">:.2f}</span><span class="ss">, Combound solution ELBO = </span><span class="sc">{</span><span class="op">-</span>compound_fit[<span class="st">'res'</span>]<span class="sc">.</span>state<span class="sc">.</span>fun_val<span class="sc">:.2f}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-18-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CAVI solution ELBO = -1019.20, Combound solution ELBO = -2636.74</code></pre>
+</div>
+</div>
+<div id="58909c18-be56-4dac-8cb4-13b61111d18e" class="cell" data-execution_count="314">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>tau0 <span class="op">=</span> <span class="fl">10.</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>cavi_fit <span class="op">=</span> gaussian_mr_cavi(y, X, <span class="fl">1.</span>, tau0)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>compound_fit <span class="op">=</span> fit_fixed_tau0(tau0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="b9070cbf-a61a-4d25-b2fe-e80989720b00" class="cell" data-execution_count="318">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>cavi_fit[<span class="st">'elbo'</span>][<span class="op">-</span><span class="dv">1</span>], compound_fit[<span class="st">'res'</span>].state.fun_val</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="318">
+<pre><code>(np.float64(-736.332976336279),
+ Array(3432.76481919, dtype=float64, weak_type=True))</code></pre>
+</div>
+</div>
+<div id="1aaf7cd0-45bd-4a54-a55f-33af10e9be29" class="cell" data-execution_count="323">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(cavi_fit[<span class="st">'mu'</span>], compound_fit[<span class="st">'mu'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-21-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="8dbdbed5-e6b3-4af2-b804-954221aaa375" class="cell" data-execution_count="312">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>elbos2 <span class="op">=</span> [<span class="op">-</span>fit[<span class="st">'res'</span>].state.fun_val <span class="cf">for</span> fit <span class="kw">in</span> fits]</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>plt.plot(elbos, elbos2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-22-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="01ca8fa8-10c5-477f-b643-3b1a2ed24616" class="cell" data-execution_count="313">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>elbos2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="313">
+<pre><code>[Array(-2233.08828511, dtype=float64, weak_type=True),
+ Array(-2096.18983947, dtype=float64, weak_type=True),
+ Array(-774.02871917, dtype=float64, weak_type=True),
+ Array(-803.84306293, dtype=float64, weak_type=True),
+ Array(-800.70384499, dtype=float64, weak_type=True),
+ Array(-797.59266662, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(-2046.6561363, dtype=float64, weak_type=True),
+ Array(-1636.65300844, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(-1559.64058631, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(-2494.04162933, dtype=float64, weak_type=True),
+ Array(-768.55212925, dtype=float64, weak_type=True),
+ Array(-2166.01574364, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(-1744.26440574, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(-1443.48115985, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(-4456.63731925, dtype=float64, weak_type=True),
+ Array(-4285.31342852, dtype=float64, weak_type=True),
+ Array(-3657.86000308, dtype=float64, weak_type=True),
+ Array(-3189.92972406, dtype=float64, weak_type=True),
+ Array(-3960.20701852, dtype=float64, weak_type=True),
+ Array(-3183.15418399, dtype=float64, weak_type=True),
+ Array(-3757.99806481, dtype=float64, weak_type=True),
+ Array(-3344.9100764, dtype=float64, weak_type=True),
+ Array(-3150.94363406, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(-2949.25193201, dtype=float64, weak_type=True),
+ Array(-771.22079598, dtype=float64, weak_type=True),
+ Array(-823.78279764, dtype=float64, weak_type=True),
+ Array(-1264.03373314, dtype=float64, weak_type=True),
+ Array(-763.51500337, dtype=float64, weak_type=True),
+ Array(-741.98594706, dtype=float64, weak_type=True),
+ Array(-765.7230467, dtype=float64, weak_type=True),
+ Array(-746.87932362, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(nan, dtype=float64, weak_type=True),
+ Array(-824.88598536, dtype=float64, weak_type=True),
+ Array(-790.06144132, dtype=float64, weak_type=True),
+ Array(-780.6909028, dtype=float64, weak_type=True)]</code></pre>
+</div>
+</div>
+<div id="ae16d020-7738-4a8c-85ba-547a3f153c87" class="cell" data-execution_count="304">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>maxiter <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co">#fit = fit_lbfgs(y, X, 1., maxiter)</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co">#fit['res'].state.fun_val</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>transforms <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    tau0 <span class="op">=</span> <span class="kw">lambda</span> x: jnp.log(<span class="dv">1</span> <span class="op">+</span> jnp.exp(x))</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>nu_init <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> np.zeros(p),</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> np.ones(p),</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>    params <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>        tau0 <span class="op">=</span> <span class="fl">10.</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>fit_lbfgs, objective, posterior, KL <span class="op">=</span> make_functions2(log_marginal_normal, transforms)</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> fit_lbfgs(y, X, <span class="fl">1.</span>, nu_init, maxiter<span class="op">=</span><span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cc4d05ef-b10c-450c-9fcf-51b315475ff2" class="cell" data-execution_count="305">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>res[<span class="st">'res'</span>].params[<span class="st">'params'</span>][<span class="st">'tau0'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="305">
+<pre><code>Array(9.96947586, dtype=float64)</code></pre>
+</div>
+</div>
+<div id="23f85777-3c03-4e5a-bb63-8761a97186bd" class="cell" data-execution_count="306">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>res[<span class="st">'res'</span>].state.fun_val</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="306">
+<pre><code>Array(5607.1786817, dtype=float64, weak_type=True)</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="different-error-models" class="level2">
+<h2 class="anchored" data-anchor-id="different-error-models">Different error models</h2>
+<div id="7ff20e98-24e4-460c-8de2-cefe1f5700e2" class="cell" data-execution_count="156">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># this is for the gaussian error model</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_likelihood_normal(b, X, y, tau<span class="op">=</span><span class="fl">1.0</span>):</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    yhat <span class="op">=</span> X<span class="op">@</span>b</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fl">0.5</span> <span class="op">*</span> jnp.log(tau<span class="op">/</span>(<span class="dv">2</span> <span class="op">*</span> jnp.pi)) <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> tau <span class="op">*</span> jnp.<span class="bu">sum</span>((y <span class="op">-</span> yhat)<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> make_functions3(log_likelihood, log_marginal_g, transforms):</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># tweedie type formula for posterior mean and variance</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    posterior_mean <span class="op">=</span> <span class="kw">lambda</span> z, s, params, fixed_params: z <span class="op">+</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> jax.grad(log_marginal_g)(z, s, <span class="op">**</span>params, <span class="op">**</span>fixed_params)</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    posterior_variance <span class="op">=</span> <span class="kw">lambda</span> z, s, params, fixed_params: s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> (<span class="fl">1.</span> <span class="op">+</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> jax.grad(jax.grad(log_marginal_g))(z, s, <span class="op">**</span>params, <span class="op">**</span>fixed_params))</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># natural parameter</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    kappa <span class="op">=</span> <span class="kw">lambda</span> z, s, params, fixed_params: log_marginal_g(z, s, <span class="op">**</span>params, <span class="op">**</span>fixed_params) <span class="op">-</span> norm.logpdf(z, <span class="dv">0</span>, s)</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>    Eeta <span class="op">=</span> <span class="kw">lambda</span> z, s, params, fixed_params: jax.grad(kappa)(z, s, params, fixed_params)</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>    Eeta2 <span class="op">=</span> <span class="kw">lambda</span> z, s, params, fixed_params: Eeta(z, s, params, fixed_params)<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> jax.grad(Eeta)(z,s, params, fixed_params)</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>    KL <span class="op">=</span> <span class="kw">lambda</span> z, s, params, fixed_params: z <span class="op">*</span> Eeta(z, s, params, fixed_params) <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> Eeta2(z, s, params, fixed_params) <span class="op">*</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">-</span> kappa(z, s, params, fixed_params)</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> Eqlogp(z, s, lparams, lparams_fixed, gparams, gparams_fixed, X, y):</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>        mu <span class="op">=</span> jax.vmap(posterior_mean, (<span class="dv">0</span>, <span class="dv">0</span>, <span class="va">None</span>, <span class="va">None</span>))(z, s, gparams, gparams_fixed)</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>        V <span class="op">=</span> jax.vmap(posterior_variance, (<span class="dv">0</span>, <span class="dv">0</span>, <span class="va">None</span>, <span class="va">None</span>))(z, s, gparams, gparams_fixed)</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>        <span class="co"># possible speed up: https://github.com/jax-ml/jax/issues/3801#issuecomment-2155354413</span></span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>        D <span class="op">=</span> jnp.diag(jax.hessian(log_likelihood)(mu, X, y, <span class="op">**</span>lparams, <span class="op">**</span>lparams_fixed))</span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> log_likelihood(mu, X, y, <span class="op">**</span>lparams, <span class="op">**</span>lparams_fixed) <span class="op">+</span> jnp.<span class="bu">sum</span>(D <span class="op">*</span> V)</span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> elbo(z, s, lparams, lparams_fixed, gparams, gparams_fixed, X, y):</span>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> Eqlogp(z, s, lparams, lparams_fixed, gparams, gparams_fixed, X, y) <span class="op">-</span> jnp.<span class="bu">sum</span>(jax.vmap(KL, (<span class="dv">0</span>, <span class="dv">0</span>, <span class="va">None</span>, <span class="va">None</span>))(z, s, gparams, gparams_fixed))</span>
+<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> posterior(params, params_fixed):</span>
+<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>        z <span class="op">=</span> params[<span class="st">'z'</span>]</span>
+<span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> jnp.log(<span class="dv">1</span> <span class="op">+</span> jnp.exp(params[<span class="st">'s'</span>]))</span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a>        gparams <span class="op">=</span> {k: transforms[k](v) <span class="cf">for</span> k, v <span class="kw">in</span> params[<span class="st">'gparams'</span>].items()}</span>
+<span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a>        gparams_fixed <span class="op">=</span> params_fixed[<span class="st">'gparams'</span>]</span>
+<span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a>        mu <span class="op">=</span> jax.vmap(posterior_mean, (<span class="dv">0</span>, <span class="dv">0</span>, <span class="va">None</span>, <span class="va">None</span>))(z, s, gparams, gparams_fixed)</span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>        var <span class="op">=</span> jax.vmap(posterior_variance, (<span class="dv">0</span>, <span class="dv">0</span>, <span class="va">None</span>, <span class="va">None</span>))(z, s, gparams, gparams_fixed)</span>
+<span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> mu, var</span>
+<span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># we can take gradients with respect to nu, which includes variational parameters and the parameters of the prior</span></span>
+<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> objective(params, params_fixed, X, y):</span>
+<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a>        z <span class="op">=</span> params[<span class="st">'z'</span>]</span>
+<span id="cb35-39"><a href="#cb35-39" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> jnp.log(<span class="dv">1</span> <span class="op">+</span> jnp.exp(params[<span class="st">'s'</span>]))</span>
+<span id="cb35-40"><a href="#cb35-40" aria-hidden="true" tabindex="-1"></a>        lparams <span class="op">=</span> {k: transforms[k](v) <span class="cf">for</span> k, v <span class="kw">in</span> params[<span class="st">'lparams'</span>].items()}</span>
+<span id="cb35-41"><a href="#cb35-41" aria-hidden="true" tabindex="-1"></a>        lparams_fixed <span class="op">=</span> params_fixed[<span class="st">'lparams'</span>]</span>
+<span id="cb35-42"><a href="#cb35-42" aria-hidden="true" tabindex="-1"></a>        gparams <span class="op">=</span> {k: transforms[k](v) <span class="cf">for</span> k, v <span class="kw">in</span> params[<span class="st">'gparams'</span>].items()}</span>
+<span id="cb35-43"><a href="#cb35-43" aria-hidden="true" tabindex="-1"></a>        gparams_fixed <span class="op">=</span> params_fixed[<span class="st">'gparams'</span>]</span>
+<span id="cb35-44"><a href="#cb35-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>elbo(z, s, lparams, lparams_fixed, gparams, gparams_fixed, X, y)</span>
+<span id="cb35-45"><a href="#cb35-45" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb35-46"><a href="#cb35-46" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> fit(y, X, params_init, params_fixed, maxiter<span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb35-47"><a href="#cb35-47" aria-hidden="true" tabindex="-1"></a>        p <span class="op">=</span> X.shape[<span class="dv">1</span>]</span>
+<span id="cb35-48"><a href="#cb35-48" aria-hidden="true" tabindex="-1"></a>        solver <span class="op">=</span> jaxopt.ScipyMinimize(fun<span class="op">=</span>objective, maxiter<span class="op">=</span>maxiter)</span>
+<span id="cb35-49"><a href="#cb35-49" aria-hidden="true" tabindex="-1"></a>        res <span class="op">=</span> solver.run(params_init, X<span class="op">=</span>X, y<span class="op">=</span>y, params_fixed<span class="op">=</span>params_fixed) <span class="co"># optimize  </span></span>
+<span id="cb35-50"><a href="#cb35-50" aria-hidden="true" tabindex="-1"></a>        mu, var <span class="op">=</span> posterior(res.params, params_fixed)</span>
+<span id="cb35-51"><a href="#cb35-51" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">dict</span>(res<span class="op">=</span>res, mu<span class="op">=</span>mu, var<span class="op">=</span>var)</span>
+<span id="cb35-52"><a href="#cb35-52" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb35-53"><a href="#cb35-53" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fit, objective, posterior, KL</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="068141dd-db1d-4d7d-a9c6-4b61b85de86c" class="cell" data-execution_count="209">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>transforms <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>    tau0 <span class="op">=</span> <span class="kw">lambda</span> x: jnp.log(<span class="dv">1</span> <span class="op">+</span> jnp.exp(x))</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>params_init <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> np.zeros(p),</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> np.ones(p),</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>    gparams <span class="op">=</span> <span class="bu">dict</span>(),</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    lparams <span class="op">=</span> <span class="bu">dict</span>(),</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>params_fixed <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>    lparams <span class="op">=</span> <span class="bu">dict</span>(tau <span class="op">=</span> <span class="fl">0.01</span>), <span class="co"># residual error precision</span></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>    gparams <span class="op">=</span> <span class="bu">dict</span>(tau0 <span class="op">=</span> <span class="fl">10.</span>) <span class="co"># prior effect precision</span></span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>fit_fun, objective, posterior, KL <span class="op">=</span> make_functions3(log_likelihood_normal, log_marginal_normal, transforms)</span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>sim <span class="op">=</span> simulate_gaussian(<span class="dv">1000</span>, <span class="dv">100</span>, tau<span class="op">=</span><span class="fl">1.</span>, tau0<span class="op">=</span><span class="fl">1.</span>, seed<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a>y, X, b <span class="op">=</span> sim[<span class="st">'y'</span>], sim[<span class="st">'X'</span>], sim[<span class="st">'b'</span>]</span>
+<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a>fit <span class="op">=</span> fit_fun(y, X, params_init, params_fixed, maxiter<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a>cavi_fit <span class="op">=</span> gaussian_mr_cavi(y, X, tau<span class="op">=</span><span class="fl">.01</span>, tau0<span class="op">=</span><span class="fl">10.0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="ceb759e9-1b06-48f5-b912-76e5fbca0cab" class="cell" data-execution_count="210">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(cavi_fit[<span class="st">'mu'</span>], fit[<span class="st">'mu'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-29-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="d2952eff-1d4a-48aa-b40d-132d6a33b0f4" class="cell" data-execution_count="211">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mean field updates</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="co"># simulate</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_likelihood_logistic(b, X, y):</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>    eta <span class="op">=</span> X<span class="op">@</span>b</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.<span class="bu">sum</span>(y <span class="op">*</span> eta <span class="op">-</span> jnp.log(<span class="dv">1</span> <span class="op">+</span> jnp.exp(eta)))</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> simulate_logistic(n, p, tau0<span class="op">=</span><span class="fl">1.</span>, seed<span class="op">=</span><span class="dv">1</span>):</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>    np.random.seed(seed)</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> np.random.normal(size<span class="op">=</span>(n, p))</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>    b <span class="op">=</span> np.random.normal(size<span class="op">=</span>p) <span class="op">/</span> np.sqrt(tau0)</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>    logit <span class="op">=</span> X <span class="op">@</span> b</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> <span class="dv">1</span> <span class="op">/</span> (<span class="dv">1</span> <span class="op">+</span> np.exp(<span class="op">-</span>logit))</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, p)</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">dict</span>(y<span class="op">=</span>y, X<span class="op">=</span>X, b<span class="op">=</span>b, tau0<span class="op">=</span>tau0, seed<span class="op">=</span>seed)</span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>    transforms <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>    tau0 <span class="op">=</span> <span class="kw">lambda</span> x: jnp.log(<span class="dv">1</span> <span class="op">+</span> jnp.exp(x))</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>params_init <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> np.zeros(p),</span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> np.ones(p),</span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a>    gparams <span class="op">=</span> <span class="bu">dict</span>(),</span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a>    lparams <span class="op">=</span> <span class="bu">dict</span>(),</span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a>params_fixed <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a>    lparams <span class="op">=</span> <span class="bu">dict</span>(), <span class="co"># residual error precision</span></span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a>    gparams <span class="op">=</span> <span class="bu">dict</span>(tau0 <span class="op">=</span> <span class="fl">10.</span>) <span class="co"># prior effect precision</span></span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a>fit_fun, objective, posterior, KL <span class="op">=</span> make_functions3(log_likelihood_logistic, log_marginal_normal, transforms)</span>
+<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-34"><a href="#cb38-34" aria-hidden="true" tabindex="-1"></a>sim <span class="op">=</span> simulate_logistic(<span class="dv">1000</span>, <span class="dv">100</span>, tau0<span class="op">=</span><span class="fl">10.</span>, seed<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb38-35"><a href="#cb38-35" aria-hidden="true" tabindex="-1"></a>y, X, b <span class="op">=</span> sim[<span class="st">'y'</span>], sim[<span class="st">'X'</span>], sim[<span class="st">'b'</span>]</span>
+<span id="cb38-36"><a href="#cb38-36" aria-hidden="true" tabindex="-1"></a>fit_logistic <span class="op">=</span> fit_fun(y, X, params_init, params_fixed, maxiter<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb38-37"><a href="#cb38-37" aria-hidden="true" tabindex="-1"></a>plt.scatter(b, compound_fit_logistic[<span class="st">'mu'</span>])</span>
+<span id="cb38-38"><a href="#cb38-38" aria-hidden="true" tabindex="-1"></a>plt.plot(get_range(b), get_range(b), color<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-31-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="scale-mixture-of-normals" class="level2">
+<h2 class="anchored" data-anchor-id="scale-mixture-of-normals">Scale mixture of normals</h2>
+<div id="c3f0441d-2605-4763-a881-e75d60981291" class="cell" data-execution_count="182">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># g is a scale mixture of normals (possibly with a point mass at 0)</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_marginal(z, s, pi, sigma_grid):</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> logsumexp(jnp.log(pi) <span class="op">+</span> norm.logpdf(z, loc<span class="op">=</span><span class="fl">0.</span>, scale<span class="op">=</span>jnp.sqrt(s<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> sigma_grid<span class="op">**</span><span class="dv">2</span>)))</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> simulate(n, p, tau<span class="op">=</span><span class="dv">1</span>, pi<span class="op">=</span>np.ones(<span class="dv">2</span>)<span class="op">*</span><span class="fl">0.5</span>, sigma_grid<span class="op">=</span>np.array([<span class="fl">0.</span>, <span class="fl">1.</span>]),seed<span class="op">=</span><span class="dv">1</span>):</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>    np.random.seed(seed)</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> np.random.normal(size<span class="op">=</span>(n, p))</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>    b <span class="op">=</span> np.random.normal(size<span class="op">=</span>p) <span class="op">*</span> np.random.choice(sigma_grid, p, replace<span class="op">=</span><span class="va">True</span>, p<span class="op">=</span>pi)</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> X <span class="op">@</span> b <span class="op">+</span> np.random.normal(size<span class="op">=</span>n)<span class="op">/</span>np.sqrt(tau)</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">dict</span>(y<span class="op">=</span>y, X<span class="op">=</span>X, b<span class="op">=</span>b, tau<span class="op">=</span>tau, pi<span class="op">=</span>pi, sigma_grid<span class="op">=</span>sigma_grid, seed<span class="op">=</span>seed)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="3c7247db-4183-4c84-9169-ad8ff1a3ed1d" class="cell" data-execution_count="183">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>?np.random.sample</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div class="ansi-escaped-output">
+<pre><span class="ansi-red-fg">Signature:</span>   np.random.sample(*args, **kwargs)
+<span class="ansi-red-fg">Type:</span>        cython_function_or_method
+<span class="ansi-red-fg">String form:</span> &lt;cyfunction sample at 0x11b03f510&gt;
+<span class="ansi-red-fg">Docstring:</span>  
+This is an alias of `random_sample`. See `random_sample`  for the complete
+documentation.</pre>
+</div>
+</div>
+</div>
+<div id="4124d8cd-7e70-40c4-bb18-03be001428d0" class="cell" data-execution_count="190">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>sim <span class="op">=</span> simulate(<span class="dv">1000</span>, <span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="fixed-g-1" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-g-1">Fixed <span class="math inline">\(g\)</span></h3>
+<div id="00980017-6d01-4a8c-b8b2-4ee32a657cf1" class="cell" data-execution_count="195">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>X, y, b <span class="op">=</span> sim[<span class="st">'X'</span>], sim[<span class="st">'y'</span>], sim[<span class="st">'b'</span>]</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>pi <span class="op">=</span> np.ones(<span class="dv">2</span>) <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>sigma_grid <span class="op">=</span> np.arange(<span class="dv">2</span>)</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>log_marginal_g <span class="op">=</span> partial(log_marginal, pi<span class="op">=</span>pi, sigma_grid<span class="op">=</span>sigma_grid)</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>maxiter <span class="op">=</span> <span class="dv">1000</span></span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>fit_lbfgs, objective, posterior, KL <span class="op">=</span> make_functions(log_marginal_g)</span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>compound_fit <span class="op">=</span> fit_lbfgs(y, X, <span class="fl">1.</span>, maxiter)</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>plt.scatter(b, compound_fit[<span class="st">'mu'</span>])</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>plt.plot(get_range(b), get_range(b), c<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>plt.ylim(get_range(b))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-35-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="estimate-g-scale-mixture-of-normals" class="level3">
+<h3 class="anchored" data-anchor-id="estimate-g-scale-mixture-of-normals">Estimate <span class="math inline">\(g\)</span>: scale mixture of normals</h3>
+<p>Can we estimate <span class="math inline">\(\pi\)</span>?</p>
+<p>First we rewrite the objective function generator so that it can take extra arguments.</p>
+<div id="867cbf6b-52c7-4a7f-b64f-dc5dcd11d708" class="cell" data-execution_count="244">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>n, p <span class="op">=</span> X.shape</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>pi <span class="op">=</span> np.ones(<span class="dv">2</span>) <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>sigma_grid <span class="op">=</span> np.arange(<span class="dv">2</span>)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="co"># still needs kwarg pi</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>log_marginal_g <span class="op">=</span> partial(log_marginal, sigma_grid<span class="op">=</span>sigma_grid)</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>normalize <span class="op">=</span> <span class="kw">lambda</span> x: jnp.exp(x <span class="op">-</span> logsumexp(x))</span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>transforms <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>    pi <span class="op">=</span> <span class="kw">lambda</span> x: normalize(jnp.concat([jnp.zeros(<span class="dv">1</span>), x]))</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>nu_init <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> np.zeros(p),</span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> np.ones(p),</span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>    params <span class="op">=</span> <span class="bu">dict</span>(</span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>        pi <span class="op">=</span> np.ones(<span class="dv">1</span>)</span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>fit_lbfgs, objective, posterior, KL <span class="op">=</span> make_functions2(log_marginal_g, transforms)</span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> fit_lbfgs(y, X, <span class="fl">1.</span>, nu_init, maxiter<span class="op">=</span><span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="4e5525ee-74ef-4fd9-82b9-96866a124358" class="cell" data-execution_count="245">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>res[<span class="st">'res'</span>].state.fun_val</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="245">
+<pre><code>Array(257171.97473841, dtype=float64, weak_type=True)</code></pre>
+</div>
+</div>
+<div id="685c40cb-9726-4251-8d28-3451de684b98" class="cell" data-execution_count="246">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>res[<span class="st">'res'</span>].params[<span class="st">'params'</span>][<span class="st">'pi'</span>], transforms[<span class="st">'pi'</span>](res[<span class="st">'res'</span>].params[<span class="st">'params'</span>][<span class="st">'pi'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="246">
+<pre><code>(Array([-57.26714742], dtype=float64),
+ Array([1.00000000e+00, 1.34646131e-25], dtype=float64))</code></pre>
+</div>
+</div>
+<div id="2f774462-69df-46ff-a465-82cfa9bb1689" class="cell" data-scrolled="true" data-execution_count="247">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>mu, var <span class="op">=</span> posterior(res[<span class="st">'res'</span>].params)</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>plt.scatter(b, mu)</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>plt.plot(get_range(b), get_range(b), color<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'dotted'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-40-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="logistic-regression" class="level2">
+<h2 class="anchored" data-anchor-id="logistic-regression">Logistic regression</h2>
+<p>The other change we want to make is to</p>
+<div id="bf88f5f7-5d0a-4848-be8b-2ccf680d0041" class="cell" data-execution_count="160">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>z, s <span class="op">=</span> compound_fit3[<span class="st">'res'</span>].params[<span class="st">'z'</span>], np.log(<span class="dv">1</span> <span class="op">+</span> np.exp(compound_fit3[<span class="st">'res'</span>].params[<span class="st">'log1exps'</span>]))</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>jax.vmap(KL)(z, s).<span class="bu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="160">
+<pre><code>Array(27.74933929, dtype=float64)</code></pre>
+</div>
+</div>
+<div id="341d774d-7ed4-4a6e-bd4b-09e8cfbc4dec" class="cell" data-execution_count="161">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>mu, var <span class="op">=</span> posterior(compound_fit3[<span class="st">'res'</span>].params)</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>kl_univariate_gaussian(mu, var, <span class="fl">0.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="161">
+<pre><code>Array(27.74933929, dtype=float64)</code></pre>
+</div>
+</div>
+<div id="3f71a893-652e-440c-87d5-18c78ef76572" class="cell" data-execution_count="163">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>mu, var <span class="op">=</span> compound_fit3[<span class="st">'mu'</span>], compound_fit3[<span class="st">'var'</span>]</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>compound_fit3[<span class="st">'res'</span>].state.fun_val, <span class="op">-</span>elbo_cavi(mu, var, y, X, <span class="fl">1.</span>, <span class="fl">10.</span>), <span class="op">-</span>elbo_cavi(cavi_fit3[<span class="st">'mu'</span>], cavi_fit3[<span class="st">'var'</span>], y, X, <span class="fl">1.</span>, <span class="fl">10.</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="163">
+<pre><code>(Array(523.85889506, dtype=float64, weak_type=True),
+ Array(523.85889506, dtype=float64),
+ np.float64(523.8588950591209))</code></pre>
+</div>
+</div>
+<div id="01d183e5-21bd-418c-80cb-5bc2d198788a" class="cell" data-execution_count="164">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>fit, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>)</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>plt.sca(ax[<span class="dv">0</span>])</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(cavi_fit3[<span class="st">'mu'</span>], compound_fit3[<span class="st">'mu'</span>])</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>plt.sca(ax[<span class="dv">1</span>])</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>plt.scatter(cavi_fit3[<span class="st">'var'</span>], compound_fit3[<span class="st">'var'</span>])</span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-44-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="c9841207-69f0-4140-b457-103aa23b2f97" class="cell" data-execution_count="85">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="85">
+<pre><code>Array([-0.13567134,  0.26544161, -0.40584675, -0.85080322, -0.30657902,
+        0.12930233,  0.7454886 , -0.24539989, -0.26072837,  0.57516103],      dtype=float64)</code></pre>
+</div>
+</div>
+<div id="e43f459f-914f-4b5b-9bf4-6cbda3ca544f" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>np.arange(<span class="dv">9</span>).reshape((<span class="dv">3</span>, <span class="dv">3</span>))[:, <span class="op">-</span><span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<pre><code>array([2, 5, 8])</code></pre>
+</div>
+</div>
+<div id="8ee01f43-c0c8-485e-bf3d-d1581c9f92bd" class="cell" data-execution_count="130">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>objective(nu, X, y), objective(res.params, X, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="130">
+<pre><code>(Array(11018.78375662, dtype=float64), Array(-1.32008246e+18, dtype=float64))</code></pre>
+</div>
+</div>
+<div id="69d0138f-04e0-4815-877b-fbafa4c95fc0" class="cell" data-execution_count="131">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> res.params[<span class="st">'z'</span>]</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> np.exp(res.params[<span class="st">'logs'</span>])</span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>jnp.<span class="bu">sum</span>(jax.vmap(KL)(z, s))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="131">
+<pre><code>Array(-5.08062333e+17, dtype=float64)</code></pre>
+</div>
+</div>
+<div id="f4dcb2ab-79c3-4f19-900c-c26eae9a7dc4" class="cell" data-execution_count="132">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>Eqlogp(z, s, X, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="132">
+<pre><code>Array(-10270147.73771521, dtype=float64)</code></pre>
+</div>
+</div>
+<div id="fefc1c6e-2659-426a-ba87-cb2bcbcf3a57" class="cell" data-execution_count="133">
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="op">-</span>elbo(z, s, X, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="133">
+<pre><code>Array(-5.08062333e+17, dtype=float64)</code></pre>
+</div>
+</div>
+<div id="a041511f-fe7e-426a-ae42-9e0120a8c227" class="cell" data-execution_count="134">
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>objective(res.params, X, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="134">
+<pre><code>Array(-1.32008246e+18, dtype=float64)</code></pre>
+</div>
+</div>
+<div id="01e8a527-c5a8-4c2c-ae89-4f8a60217e4c" class="cell" data-execution_count="135">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>res.params</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="135">
+<pre><code>{'logs': Array([-32.65431832, -33.99137097, -32.41550529, -34.4223221 ,
+        -33.20838334, -33.72765494, -32.46054413, -33.43432489,
+        -35.88141027, -36.70303223], dtype=float64),
+ 'z': Array([-16.64609876,  72.32127877, -65.75067104, -86.75400856,
+        -36.24869933,   2.84979608,  -5.43784215,  38.26865343,
+        -17.63772068,   3.67401776], dtype=float64)}</code></pre>
+</div>
+</div>
+<div id="81ed5c3f-ad0c-4c2a-a1f8-4430d3646322" class="cell" data-execution_count="136">
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="normal_mixture_files/figure-html/cell-53-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="1c94ead4-e001-4a11-88ae-0bcebb666675" class="cell" data-execution_count="67">
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>objective(res.params, X<span class="op">=</span>X, y<span class="op">=</span>y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="67">
+<pre><code>Array(-1.17427129e+108, dtype=float64)</code></pre>
+</div>
+</div>
+<div id="6887ed4d-be84-42ec-a112-d815b5b62df1" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>posterior_variance2(<span class="fl">1.</span>, <span class="fl">2.</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>Array(2.23706796, dtype=float64, weak_type=True)</code></pre>
+</div>
+</div>
+<div id="5d20118b-6558-417a-b414-a97be49170b0" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the posterior variance computations doesjnp.sum(pi * sigma_grid**2), np.sum(post_assignment * post_var), posterior_variance(z, s)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="bcaac17a-f556-404e-9c4a-af518b697f76" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="co"># posterior means agree</span></span>
+<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> <span class="fl">10.</span></span>
+<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a><span class="co"># posterior distribution for normal means model when g = scale mixture of normals.</span></span>
+<span id="cb78-6"><a href="#cb78-6" aria-hidden="true" tabindex="-1"></a>post_mean <span class="op">=</span> z <span class="op">*</span> sigma_grid<span class="op">**</span><span class="dv">2</span> <span class="op">/</span> (s<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> sigma_grid<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb78-7"><a href="#cb78-7" aria-hidden="true" tabindex="-1"></a>post_var <span class="op">=</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> sigma_grid<span class="op">**</span><span class="dv">2</span> <span class="op">/</span> (s<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> sigma_grid<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb78-8"><a href="#cb78-8" aria-hidden="true" tabindex="-1"></a>log_normalizing_const <span class="op">=</span> norm.logpdf(z, <span class="dv">0</span>, scale <span class="op">=</span> np.sqrt(s<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> sigma_grid<span class="op">**</span><span class="dv">2</span>))</span>
+<span id="cb78-9"><a href="#cb78-9" aria-hidden="true" tabindex="-1"></a>post_assignment <span class="op">=</span> normalize(np.log(pi) <span class="op">+</span> log_normalizing_const) <span class="co"># sums to one</span></span>
+<span id="cb78-10"><a href="#cb78-10" aria-hidden="true" tabindex="-1"></a>eQ <span class="op">=</span> <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="dv">1</span><span class="op">/</span>s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> ((post_mean <span class="op">-</span> z)<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> post_var)</span>
+<span id="cb78-11"><a href="#cb78-11" aria-hidden="true" tabindex="-1"></a>kl_q_g <span class="op">=</span> jnp.<span class="bu">sum</span>(post_assignment <span class="op">*</span> eQ) <span class="op">-</span> logsumexp(jnp.log(pi) <span class="op">+</span> log_normalizing_const)</span>
+<span id="cb78-12"><a href="#cb78-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-13"><a href="#cb78-13" aria-hidden="true" tabindex="-1"></a><span class="co"># posterior mean computation is working</span></span>
+<span id="cb78-14"><a href="#cb78-14" aria-hidden="true" tabindex="-1"></a><span class="co"># posterior variance computation does not seem to be working</span></span>
+<span id="cb78-15"><a href="#cb78-15" aria-hidden="true" tabindex="-1"></a>np.<span class="bu">sum</span>(post_assignment <span class="op">*</span> post_mean) <span class="op">-</span> posterior_mean2(z, s), np.<span class="bu">sum</span>(post_assignment <span class="op">*</span> post_var) <span class="op">-</span> posterior_variance2(z, s)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>(Array(0., dtype=float64), Array(7.10542736e-15, dtype=float64))</code></pre>
+</div>
+</div>
+<div id="fe05fe1e-1827-472a-a997-3b68b89ebd3e" class="cell">
+<div class="sourceCode cell-code" id="cb80"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="co">#posterior_mean2 = jax.vmap(lambda nu: posterior_mean(nu[0], jnp.exp(nu[1])))</span></span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a><span class="co">#posterior_variance2 = jax.vmap(lambda nu: posterior_variance(nu[0], jnp.exp(nu[1])))</span></span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>posterior_assignment <span class="op">=</span> <span class="kw">lambda</span>: normalize(np.log(pi) <span class="op">+</span> norm.logpdf(nu[<span class="dv">0</span>], <span class="dv">0</span>, scale <span class="op">=</span> np.sqrt(np.exp(nu[<span class="dv">1</span>]) <span class="op">+</span> sigma_grid<span class="op">**</span><span class="dv">2</span>)))</span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> loglik(nu, y, X):</span>
+<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a>    b <span class="op">=</span> nu[:, <span class="dv">0</span>]</span>
+<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a>    v <span class="op">=</span> jnp.exp(nu[:, <span class="dv">1</span>])</span>
+<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> jnp.diag(X.T <span class="op">@</span> X)</span>
+<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> jnp.<span class="bu">sum</span>(y <span class="op">-</span> X<span class="op">@</span>b) <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> jnp.<span class="bu">sum</span>(d <span class="op">*</span> v)</span>
+<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-11"><a href="#cb80-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> kl(nu):</span>
+<span id="cb80-12"><a href="#cb80-12" aria-hidden="true" tabindex="-1"></a>    post_mean <span class="op">=</span> posterior_mean(nu)</span>
+<span id="cb80-13"><a href="#cb80-13" aria-hidden="true" tabindex="-1"></a>    post_var <span class="op">=</span> posterior_variance(nu)</span>
+<span id="cb80-14"><a href="#cb80-14" aria-hidden="true" tabindex="-1"></a>    post_assingment <span class="op">=</span> posterior_assignment(nu)</span>
+<span id="cb80-15"><a href="#cb80-15" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="56448dc8-a3f2-4b0c-a0fe-cc53fe0aa0fb" class="cell" data-execution_count="42">
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>nu <span class="op">=</span> np.array([z, np.log(s)])</span>
+<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>posterior_mean2(nu), posterior_variance2(nu), </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="42">
+<pre><code>(Array(3.5166755, dtype=float32), Array(1.0133736, dtype=float32))</code></pre>
+</div>
+</div>
+<div id="08a643c3-089b-4c99-906e-41e2fbb5e44b" class="cell" data-execution_count="88">
+<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a>jax.grad(posterior_mean2)(nu)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="88">
+<pre><code>Array([ 0.2099328, -2.70177  ], dtype=float32)</code></pre>
+</div>
+</div>
+<div id="0ef4400e-c92e-47f4-bbca-2d28dca27257" class="cell" data-execution_count="89">
+<div class="sourceCode cell-code" id="cb85"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>jax.grad(posterior_variance2)(nu)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="89">
+<pre><code>Array([0.71372473, 4.8463917 ], dtype=float32)</code></pre>
+</div>
+</div>
+<div id="6ca556a9-d0cf-4051-8e29-de25afbc8cfe" class="cell" data-execution_count="90">
+<div class="sourceCode cell-code" id="cb87"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a>posterior_mean3 <span class="op">=</span> jax.vmap(posterior_mean2)</span>
+<span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a>posterior_variance3 <span class="op">=</span> jax.vmap(posterior_variance2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="21ba3703-bd28-4d1c-a64f-e4affab5c98d" class="cell" data-execution_count="91">
+<div class="sourceCode cell-code" id="cb88"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>posterior_variance2(nu)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="91">
+<pre><code>Array(20.993286, dtype=float32)</code></pre>
+</div>
+</div>
+<div id="9249c870-859d-4c14-9d43-ca450d801100" class="cell" data-execution_count="95">
+<div class="sourceCode cell-code" id="cb90"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a><span class="co"># gradient based computation</span></span>
+<span id="cb90-2"><a href="#cb90-2" aria-hidden="true" tabindex="-1"></a>nu <span class="op">=</span> np.array([z, np.log(s)])</span>
+<span id="cb90-3"><a href="#cb90-3" aria-hidden="true" tabindex="-1"></a>posterior_mean2(nu), posterior_variance2(nu)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="95">
+<pre><code>(Array(1.8652706, dtype=float32), Array(20.993286, dtype=float32))</code></pre>
+</div>
+</div>
+<div id="e5d53b26-d3d5-4c34-b835-67d8afffe54d" class="cell" data-execution_count="92">
+<div class="sourceCode cell-code" id="cb92"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a><span class="co"># analytic computation</span></span>
+<span id="cb92-2"><a href="#cb92-2" aria-hidden="true" tabindex="-1"></a>normalize <span class="op">=</span> <span class="kw">lambda</span> x: np.exp(x <span class="op">-</span> logsumexp(x))</span>
+<span id="cb92-3"><a href="#cb92-3" aria-hidden="true" tabindex="-1"></a>tau_grid <span class="op">=</span> <span class="dv">1</span><span class="op">/</span>sigma_grid<span class="op">**</span><span class="dv">2</span></span>
+<span id="cb92-4"><a href="#cb92-4" aria-hidden="true" tabindex="-1"></a>gamma <span class="op">=</span> <span class="dv">1</span><span class="op">/</span>np.exp(nu[<span class="dv">1</span>])</span>
+<span id="cb92-5"><a href="#cb92-5" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> nu[<span class="dv">0</span>]</span>
+<span id="cb92-6"><a href="#cb92-6" aria-hidden="true" tabindex="-1"></a>posterior_variance_grid <span class="op">=</span> <span class="dv">1</span><span class="op">/</span>(gamma <span class="op">+</span> tau_grid)</span>
+<span id="cb92-7"><a href="#cb92-7" aria-hidden="true" tabindex="-1"></a>posterior_pi <span class="op">=</span> normalize(jnp.log(pi) <span class="op">+</span> norm.logpdf(b, <span class="dv">0</span>, np.sqrt(<span class="dv">1</span><span class="op">/</span>gamma <span class="op">+</span> <span class="dv">1</span><span class="op">/</span>tau_grid)))</span>
+<span id="cb92-8"><a href="#cb92-8" aria-hidden="true" tabindex="-1"></a>np.<span class="bu">sum</span>(posterior_variance_grid <span class="op">*</span> posterior_pi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/0q/xlv6fxx51c17jf27j1ws0wx40000gn/T/ipykernel_97861/2498233326.py:3: RuntimeWarning: divide by zero encountered in divide
+  tau_grid = 1/sigma_grid**2</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="92">
+<pre><code>np.float64(7.633511455047038)</code></pre>
+</div>
+</div>
+<div id="05f9ec65-267f-49c0-a4f5-9c0d51406fd5" class="cell" data-execution_count="94">
+<div class="sourceCode cell-code" id="cb95"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>posterior_variance_grid</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="94">
+<pre><code>array([0.        , 0.90909091, 2.85714286, 4.73684211, 6.15384615,
+       7.14285714, 7.82608696, 8.30508475, 8.64864865, 8.9010989 ])</code></pre>
+</div>
+</div>
+<div id="c364c6e0-8a3a-4b6f-a610-01c6ce44b5a9" class="cell" data-execution_count="69">
+<div class="sourceCode cell-code" id="cb97"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> np.random.normal(size<span class="op">=</span>(<span class="dv">100</span>, <span class="dv">10</span>))</span>
+<span id="cb97-2"><a href="#cb97-2" aria-hidden="true" tabindex="-1"></a>Nu <span class="op">=</span> np.random.normal(size<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">2</span>))</span>
+<span id="cb97-3"><a href="#cb97-3" aria-hidden="true" tabindex="-1"></a>beta <span class="op">=</span> posterior_mean3(Nu)<span class="co">#, posterior_variance3(Nu)</span></span>
+<span id="cb97-4"><a href="#cb97-4" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> X <span class="op">@</span> beta <span class="op">+</span> np.random.normal(size<span class="op">=</span><span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="ec71b5ca-305c-4d85-92e2-3f3a4c771573" class="cell">
+<div class="sourceCode cell-code" id="cb98"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> q2mix(nu, pi, sigma_grid):</span>
+<span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb98-3"><a href="#cb98-3" aria-hidden="true" tabindex="-1"></a><span class="co">    get mixture representation for tilted scale mixture of gaussians</span></span>
+<span id="cb98-4"><a href="#cb98-4" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb98-5"><a href="#cb98-5" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="23fc38ae-f404-42b2-bd66-6dad584cb44c" class="cell">
+<div class="sourceCode cell-code" id="cb99"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> kl(nu, pi, sigma_grid):</span>
+<span id="cb99-2"><a href="#cb99-2" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb99-3"><a href="#cb99-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> elbo(nu, y, X):</span>
+<span id="cb99-4"><a href="#cb99-4" aria-hidden="true" tabindex="-1"></a>    mu <span class="op">=</span> posterior_mean3(nu)</span>
+<span id="cb99-5"><a href="#cb99-5" aria-hidden="true" tabindex="-1"></a>    var <span class="op">=</span> posterior_variance(nu)</span>
+<span id="cb99-6"><a href="#cb99-6" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> jnp.diag(X.T <span class="op">@</span> X)</span>
+<span id="cb99-7"><a href="#cb99-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> jnp.<span class="bu">sum</span>((y <span class="op">-</span> mu)<span class="op">**</span><span class="dv">2</span>) <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> jnp.<span class="bu">sum</span>(d <span class="op">*</span> var) <span class="op">-</span> kl(nu, pi, sigma_grid)</span>
+<span id="cb99-8"><a href="#cb99-8" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
